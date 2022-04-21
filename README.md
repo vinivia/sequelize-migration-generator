@@ -6,7 +6,7 @@ Generates Sequelize migrations from an existing database structure.
 
 ## Enviroment
 ```
-Python >3.6 < 3.7
+Python >=3.6 < 3.7
 
 ```
 ## Installation And Run

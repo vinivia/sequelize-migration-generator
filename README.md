@@ -11,7 +11,7 @@ Python >3.6 < 3.7
 ```
 ## Installation And Run
 
-Install my-project with npm
+Download and run project in local environment
 
 ```bash
   git clone https://github.com/vinivia/sequelize-migration-generator.git

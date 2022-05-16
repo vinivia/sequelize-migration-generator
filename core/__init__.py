@@ -14,7 +14,6 @@ def generate_migration(host, port, user, password, database_name, path):
         path = os.path.join(path, "migrations")
     if not os.path.exists(path):
         os.makedirs(path, 777, True)
-    print(path)
     mydb = mysql.connector.connect(
         host=host,
         port=port,
@@ -123,7 +122,6 @@ def generate_seeds(host, port, user, password, database_name, path):
         currentfiletime = datetime.now().strftime("%Y%m%d%H%M%S")
         file_name = "{}/{}-create-{}.js".format(path, currentfiletime, table)
         query = "SELECT * FROM `{}`".format(table)
-        print(query)
 
         desccur = mydb.cursor(dictionary=True)
         desccur.execute(query)
@@ -140,7 +138,6 @@ def generate_seeds(host, port, user, password, database_name, path):
         if len(definition):
             definition = ",".join(definition)
             main_layout = seedmainl.format(definition=definition, table_name=table, obras="{", cbras="}")
-            print(main_layout)
             file = open(file_name, 'w',encoding="utf8")
             file.write(main_layout)
             file.close()

@@ -1,6 +1,6 @@
 import mysql.connector
 from datetime import datetime
-from core.layouts import mainl
+from core.layouts import mainl, seedmainl
 from core.datatype import datatype
 import os
 import re
@@ -29,7 +29,7 @@ def generate_migration(host, port, user, password, database_name, path):
     for table in tables:
         table = table[0]
         currentfiletime = datetime.now().strftime("%Y%m%d%H%M%S")
-        file_name = "{}/{}-create-{}.js".format(path,currentfiletime, table)
+        file_name = "{}/{}-create-{}.js".format(path, currentfiletime, table)
         query = "SELECT COLUMN_NAME,DATA_TYPE,COLUMN_TYPE,COLUMN_DEFAULT,IS_NULLABLE,CHARACTER_MAXIMUM_LENGTH,COLUMN_KEY," \
                 "EXTRA,COLUMN_COMMENT FROM information_schema.COLUMNS WHERE TABLE_NAME = '{}' AND TABLE_SCHEMA='{" \
                 "}'".format(table, database_name)
@@ -92,7 +92,56 @@ def generate_migration(host, port, user, password, database_name, path):
         print("Migration Generated : {}".format(file_name))
     for table, time in reference.items():
         helper.renameReferenceTableMigration(table, time)
+
+
 # check_key = mydb.cursor(dictionary=True)
 # check_key.execute(query_check_foren_key)
 # desc = check_key.fetchall()
 # print(main_layout)
+
+def generate_seeds(host, port, user, password, database_name, path):
+    if not os.path.isabs(path):
+        path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "../seeds")
+    else:
+        path = os.path.join(path, "seeds")
+    if not os.path.exists(path):
+        os.makedirs(path, 777, True)
+    mydb = mysql.connector.connect(
+        host=host,
+        port=port,
+        user=user,
+        password=password if password else "",
+        database=database_name
+    )
+    tableCursor = mydb.cursor()
+    tableCursor.execute("show tables")
+    tables = tableCursor.fetchall()
+    for table in tables:
+        table = table[0]
+        if table == "sequelizemeta":
+            continue
+        currentfiletime = datetime.now().strftime("%Y%m%d%H%M%S")
+        file_name = "{}/{}-create-{}.js".format(path, currentfiletime, table)
+        query = "SELECT * FROM `{}`".format(table)
+        print(query)
+
+        desccur = mydb.cursor(dictionary=True)
+        desccur.execute(query)
+        datas = desccur.fetchall()
+        definition = []
+        for data in datas:
+            if data is not None:
+                l = '''\n\t\t\t\t{'''
+                for colunm, d in data.items():
+                    if colunm not in ["createdAt", "updatedAt"]:
+                        l += "\n\t\t\t\t\t{}: '{}',".format(colunm, d)
+                l += '''\n\t\t\t\t}'''
+                definition.append(l)
+        if len(definition):
+            definition = ",".join(definition)
+            main_layout = seedmainl.format(definition=definition, table_name=table, obras="{", cbras="}")
+            print(main_layout)
+            file = open(file_name, 'w',encoding="utf8")
+            file.write(main_layout)
+            file.close()
+            print("Migration Generated : {}".format(file_name))
